@@ -1,12 +1,15 @@
+require('dotenv').config()
 const express = require('express')
-const dotenv = require('dotenv')
+const app = express();
 const morgan = require('morgan')
-const path = require('path')
+// const path = require('path')
+const cors = require('cors')
 const errorHandler = require('./middleware/error.middleware')
 
+app.use(cors())
 
-// Load env vars
-dotenv.config();
+// // Load env vars
+// dotenv.config();
 
 // Database connection
 const connectDB = require('./config/db')
@@ -16,7 +19,7 @@ connectDB()
 const auth = require('./routes/auth.routes')
 const user = require('./routes/users.routes')
 
-const app = express();
+
 
 
 // Set EJS as templating engine
@@ -31,9 +34,9 @@ app.use(express.urlencoded({ extended: false }))
 
 
 // Logger
-if(process.env.NODE_ENV === 'development'){
+// if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'))
-}
+// }
 
 // Mount route files
 app.use('/api/v1/auth', auth)
@@ -43,4 +46,4 @@ app.use(errorHandler)
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT,console.log(`Server listening at ${PORT}`))
+const server = app.listen(PORT, console.log(`Server listening at ${PORT}`))

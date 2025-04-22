@@ -7,7 +7,7 @@ const sendEmail = require('../utils/sendEmail.utils')
 // @desc      Register
 // @route     Post /api/v1/auth/register
 // @access    Public
-exports.register = asyncHandler(async (req, res, next) => {
+exports.register = asyncHandler(async (req, res, _next) => {
     const {
         username,
         email,
@@ -89,7 +89,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
     await user.save({ validateBeforeSave: false })
 
-    const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/resetpassword/${resetToken}`
+    const resetUrl = `http://localhost:5000/reset-password/${resetToken}`
 
     const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please open this url: \n\n ${resetUrl}`
 
@@ -110,7 +110,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse('Email could not be sent', 500))
     }
 
-    sendTokenResponse(user, 200, res)
+    // sendTokenResponse(user, 200, res)
 })
 
 // @desc      reset password
