@@ -8,7 +8,6 @@ const errorHandler = require('./middleware/error.middleware');
 
 const productRoutes = require('./routes/product.routes.js');
 
-
 app.use(cors());
 
 // // Load env vars
@@ -26,6 +25,8 @@ const user = require('./routes/users.routes');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+//express.static('public'));
+app.use(express.static('public'));
 
 // Set static folder
 // app.use(express.static(path.join(__dirname, 'public')));
@@ -38,12 +39,12 @@ app.use(morgan('dev'));
 // Mount route files
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/users', user);
-// ErrorHandler
-app.use(errorHandler);
 
 app.use('/api/v1/products', productRoutes);
 
+// ErrorHandler
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, console.log(`Server listening at ${PORT}`));
+app.listen(PORT, console.log(`Server listening at ${PORT}`));
