@@ -19,7 +19,10 @@ module.exports = [
 
       eqeqeq: ['error', 'always'], // Require === and !==
 
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }], // Disallow unused variables
+      'no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^_', argsIgnorePattern: '^_' },
+      ], // Disallow unused variables
 
       'no-console': ['warn'], // Warn about console.log statements
 
