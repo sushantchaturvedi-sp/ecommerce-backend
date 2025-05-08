@@ -12,12 +12,7 @@ router.post(
   upload.array('image', 10),
   productController.createProduct
 );
-router.get(
-  '/',
-  // protect,
-  // authorize('admin'), //To authorize admin to view the panel
-  productController.getAllProducts
-);
+router.get('/', productController.getAllProducts);
 router.get('/:id', productController.getProductById);
 router.delete(
   '/:id',
