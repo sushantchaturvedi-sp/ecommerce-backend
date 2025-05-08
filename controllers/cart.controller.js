@@ -1,143 +1,112 @@
+const asyncHandler = require('../middleware/async.middleware');
+const ErrorResponse = require('../utils/errorResponse.utils');
 const Cart = require('../models/Cart.models');
 const Product = require('../models/Product.models');
 
-// Add item to cart
-exports.addToCart = async (req, res) => {
-  try {
-    const userId = req.user?._id || req.body.userId;
-    const { items } = req.body; // Accept an array of product items
+// Add items to cart
+exports.addToCart = asyncHandler(async (req, res, next) => {
+  const userId = req.user?._id || req.body.userId;
+  const { items } = req.body;
 
-    if (!userId || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ message: 'Invalid cart data' });
-    }
-
-    // Validate each item
-    for (const item of items) {
-      if (
-        !item.productId ||
-        !Number.isInteger(item.quantity) ||
-        item.quantity <= 0
-      ) {
-        return res
-          .status(400)
-          .json({ message: 'Invalid product or quantity in item list' });
-      }
-    }
-
-    let cart = await Cart.findOne({ user: userId });
-
-    if (!cart) {
-      cart = new Cart({
-        user: userId,
-        items: [],
-      });
-    }
-
-    for (const item of items) {
-      const product = await Product.findById(item.productId);
-      if (!product) {
-        continue;
-      }
-
-      const index = cart.items.findIndex(
-        (i) => i.product.toString() === item.productId
-      );
-
-      if (index > -1) {
-        cart.items[index].quantity = item.quantity;
-      } else {
-        cart.items.push({ product: item.productId, quantity: item.quantity });
-      }
-    }
-
-    await cart.save();
-    res.status(200).json({
-      message: 'Cart updated successfully',
-      cart: cart.items,
-    });
-  } catch (error) {
-    console.error('Add to cart error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+  if (!userId || !Array.isArray(items) || items.length === 0) {
+    return next(new ErrorResponse('Invalid cart data', 400));
   }
-};
+
+  for (const item of items) {
+    const { productId, quantity } = item;
+    if (!productId || !Number.isInteger(quantity) || quantity <= 0) {
+      return next(
+        new ErrorResponse('Invalid product or quantity in item list', 400)
+      );
+    }
+  }
+
+  let cart = await Cart.findOne({ user: userId });
+  if (!cart) {
+    cart = new Cart({ user: userId, items: [] });
+  }
+
+  for (const item of items) {
+    const product = await Product.findById(item.productId);
+    if (!product) {
+      continue;
+    }
+
+    const existingItemIndex = cart.items.findIndex(
+      (i) => i.product.toString() === item.productId
+    );
+
+    if (existingItemIndex > -1) {
+      cart.items[existingItemIndex].quantity = item.quantity;
+    } else {
+      cart.items.push({ product: item.productId, quantity: item.quantity });
+    }
+  }
+
+  await cart.save();
+
+  res.status(200).json({
+    message: 'Cart updated successfully',
+    cart: cart.items,
+  });
+});
 
 // Remove item from cart
-exports.removeFromCart = async (req, res) => {
+exports.removeFromCart = asyncHandler(async (req, res, next) => {
   const { userId, productId } = req.params;
 
   if (!userId || !productId) {
-    return res
-      .status(400)
-      .json({ message: 'User ID and Product ID are required' });
+    return next(new ErrorResponse('User ID and Product ID are required', 400));
   }
 
-  try {
-    const cart = await Cart.findOne({ user: userId });
-    if (!cart) {
-      return res.status(404).json({ message: 'Cart not found' });
-    }
-
-    cart.items = cart.items.filter(
-      (item) => item.product.toString() !== productId
-    );
-    await cart.save();
-
-    res
-      .status(200)
-      .json({ message: 'Item removed from cart', cart: cart.items });
-  } catch (error) {
-    console.error('Remove from cart error:', error);
-    res
-      .status(500)
-      .json({ message: 'Internal server error', error: error.message });
+  const cart = await Cart.findOne({ user: userId });
+  if (!cart) {
+    return next(new ErrorResponse('Cart not found', 404));
   }
-};
 
-// Get all items in the cart
-exports.getCart = async (req, res) => {
+  cart.items = cart.items.filter(
+    (item) => item.product.toString() !== productId
+  );
+
+  await cart.save();
+
+  res.status(200).json({
+    message: 'Item removed from cart',
+    cart: cart.items,
+  });
+});
+
+// Get cart items
+exports.getCart = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
 
   if (!userId) {
-    return res.status(400).json({ message: 'User ID is required' });
+    return next(new ErrorResponse('User ID is required', 400));
   }
 
-  try {
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
-    if (!cart) {
-      return res.status(404).json({ message: 'Cart not found' });
-    }
-
-    res.status(200).json({ cart: cart.items });
-  } catch (error) {
-    console.error('Get cart error:', error);
-    res
-      .status(500)
-      .json({ message: 'Internal server error', error: error.message });
+  const cart = await Cart.findOne({ user: userId }).populate('items.product');
+  if (!cart) {
+    return next(new ErrorResponse('Cart not found', 404));
   }
-};
 
-// Clear the cart
-exports.clearCart = async (req, res) => {
+  res.status(200).json({ cart: cart.items });
+});
+
+// Clear entire cart
+exports.clearCart = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
 
   if (!userId) {
-    return res.status(400).json({ message: 'User ID is required' });
+    return next(new ErrorResponse('User ID is required', 400));
   }
 
-  try {
-    const cart = await Cart.findOne({ user: userId });
-    if (!cart) {
-      return res.status(404).json({ message: 'Cart not found' });
-    }
-
-    cart.items = [];
-    await cart.save();
-
-    res.status(200).json({ message: 'Cart cleared successfully' });
-  } catch (error) {
-    console.error('Clear cart error:', error);
-    res
-      .status(500)
-      .json({ message: 'Internal server error', error: error.message });
+  const cart = await Cart.findOne({ user: userId });
+  if (!cart) {
+    return next(new ErrorResponse('Cart not found', 404));
   }
-};
+
+  cart.items = [];
+  await cart.save();
+
+  res.status(200).json({ message: 'Cart cleared successfully' });
+});
