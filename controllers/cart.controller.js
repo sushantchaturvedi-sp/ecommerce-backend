@@ -2,42 +2,6 @@ const Cart = require('../models/Cart.models');
 const Product = require('../models/Product.models');
 
 // Add item to cart
-// exports.addToCart = async (req, res) => {
-//   try {
-//     const userId = req.user?._id || req.body.userId;
-//     const { productId, quantity } = req.body;
-
-//     if (!userId || !productId || !Number.isInteger(quantity) || quantity <= 0) {
-//       return res.status(400).json({ message: 'Invalid product or quantity' });
-//     }
-
-//     const product = await Product.findById(productId);
-//     if (!product) return res.status(404).json({ message: 'Product not found' });
-
-//     let cart = await Cart.findOne({ user: userId });
-
-//     if (!cart) {
-//       cart = new Cart({
-//         user: userId,
-//         items: [{ product: productId, quantity }],
-//       });
-//     } else {
-//       const index = cart.items.findIndex(item => item.product.toString() === productId);
-//       if (index > -1) {
-//         cart.items[index].quantity += quantity;
-//       } else {
-//         cart.items.push({ product: productId, quantity });
-//       }
-//     }
-
-//     await cart.save();
-//     res.status(200).json({ message: 'Cart updated successfully', cart: cart.items });
-//   } catch (error) {
-//     console.error('Add to cart error:', error);
-//     res.status(500).json({ message: 'Server error', error: error.message });
-//   }
-// };
-
 exports.addToCart = async (req, res) => {
   try {
     const userId = req.user?._id || req.body.userId;
@@ -72,7 +36,7 @@ exports.addToCart = async (req, res) => {
     for (const item of items) {
       const product = await Product.findById(item.productId);
       if (!product) {
-        continue; // Or optionally handle: return res.status(404).json(...)
+        continue;
       }
 
       const index = cart.items.findIndex(
