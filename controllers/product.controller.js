@@ -28,7 +28,6 @@ exports.getAllProducts = asyncHandler(async (req, res) => {
   } = req.query;
 
   const query = { deletedOn: { $exists: false } };
-  // console.log('Query:---------------------', query);
   if (category) {
     query.category = category;
   }
@@ -121,17 +120,3 @@ exports.deleteProduct = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({ message: 'Product deleted successfully' });
 });
-
-// function deleteImage(imagePath) {
-//   const fs = require('fs');
-//   const path = require('path');
-
-//   const fullPath = path.join(__dirname, '..', imagePath);
-//   fs.unlink(fullPath, (err) => {
-//     if (err) {
-//       console.error('Error deleting image:', err);
-//     } else {
-//       console.log('Image deleted successfully:', fullPath);
-//     }
-//   });
-// }
