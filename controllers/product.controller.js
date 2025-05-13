@@ -1,7 +1,6 @@
 const Product = require('../models/Product.models.js');
 const asyncHandler = require('../middleware/async.middleware.js');
 const ErrorResponse = require('../utils/errorResponse.utils');
-const { application } = require('express');
 
 // CREATE a new product
 exports.createProduct = asyncHandler(async (req, res) => {
@@ -29,7 +28,6 @@ exports.getAllProducts = asyncHandler(async (req, res) => {
   } = req.query;
 
   const query = { deletedOn: { $exists: false } };
-
   if (category) {
     query.category = category;
   }
@@ -95,8 +93,8 @@ exports.getProductById = asyncHandler(async (req, res) => {
 exports.updateProduct = asyncHandler(async (req, res) => {
   const productData = req.body;
 
-  if (req.file) {
-    productData.images = req.file.path;
+  if (req.files?.length > 0) {
+    productData.images = req.files.map((x) => '/images/' + x.filename);
   }
 
   const updated = await Product.findByIdAndUpdate(req.params.id, productData, {
@@ -122,17 +120,3 @@ exports.deleteProduct = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({ message: 'Product deleted successfully' });
 });
-
-// function deleteImage(imagePath) {
-//   const fs = require('fs');
-//   const path = require('path');
-
-//   const fullPath = path.join(__dirname, '..', imagePath);
-//   fs.unlink(fullPath, (err) => {
-//     if (err) {
-//       console.error('Error deleting image:', err);
-//     } else {
-//       console.log('Image deleted successfully:', fullPath);
-//     }
-//   });
-// }

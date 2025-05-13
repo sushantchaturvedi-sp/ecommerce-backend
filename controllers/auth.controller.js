@@ -93,6 +93,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({ success: true, message: 'Email Sent!' });
   } catch (err) {
+    console.log(err); // Log the error for Husky commit issue
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
 
@@ -136,8 +137,8 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
 });
 
 // Token Response
-const sendTokenResponse = (user, statusCode, res, req) => {
+const sendTokenResponse = (user, statusCode, res, _req) => {
   // Create token
   const token = user.getSignedJwtToken();
-  res.status(statusCode).json({ statusCode, data: { token } });
+  res.status(statusCode).json({ statusCode, data: { token, ...user._doc } });
 };

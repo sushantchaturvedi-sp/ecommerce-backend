@@ -26,7 +26,7 @@ router.put(
   '/:id',
   protect,
   authorize('admin'),
-  upload.single('image'),
+  upload.array('image', 10),
   productController.updateProduct
 );
 

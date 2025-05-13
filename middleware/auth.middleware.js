@@ -6,7 +6,6 @@ const ErrorResponse = require('../utils/errorResponse.utils');
 // Check user is logged in
 exports.protect = asyncHandler(async (req, res, next) => {
   let token;
-
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
