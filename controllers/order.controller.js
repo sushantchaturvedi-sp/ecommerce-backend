@@ -46,3 +46,74 @@ exports.placeOrder = asyncHandler(async (req, res) => {
     data: order,
   });
 });
+
+// @desc    Get orders of the logged-in user
+// @route   GET /api/orders/my
+// @access  Private
+exports.getUserOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.aggregate([
+    {
+      $unwind: '$items',
+    },
+    {
+      $lookup: {
+        from: 'products', // collection name in lowercase & plural (default MongoDB behavior)
+        localField: 'items.productId',
+        foreignField: '_id',
+        as: 'productDetails',
+      },
+    },
+    {
+      $unwind: {
+        path: '$productDetails',
+      },
+    },
+    {
+      $addFields: {
+        'items.name': '$productDetails.name',
+        'items.image': {
+          $cond: {
+            if: {
+              $gt: [{ $size: { $ifNull: ['$productDetails.images', []] } }, 0],
+            },
+            then: { $arrayElemAt: ['$productDetails.images', 0] },
+            else: '',
+          },
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$_id',
+        shippingAddress: { $first: '$shippingAddress' },
+        user: { $first: '$user' },
+        paymentMethod: { $first: '$paymentMethod' },
+        totalAmount: { $first: '$totalAmount' },
+        status: { $first: '$status' },
+        createdAt: { $first: '$createdAt' },
+        updatedAt: { $first: '$updatedAt' },
+        __v: { $first: '$__v' },
+        items: { $push: '$items' },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        shippingAddress: 1,
+        user: 1,
+        items: 1,
+        paymentMethod: 1,
+        totalAmount: 1,
+        status: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        __v: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    data: orders,
+  });
+});

@@ -10,7 +10,7 @@ exports.getUsers = asyncHandler(async (req, res, next) => {
 
   query = User.find();
 
-  if (req.query.status != null && req.query.status != '') {
+  if (req.query.status !== null && req.query.status !== '') {
     query = query.regex('status', new RegExp(req.query.status, 'i'));
   }
 
@@ -126,5 +126,62 @@ exports.deleteUser = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     data: {},
+  });
+});
+
+// @desc    Get currently logged-in user's profile
+// @route   GET /api/v1/users/profile
+// @access  Private (logged-in users)
+// users.controller.js
+
+// exports.getCurrentUser = asyncHandler(async (req, res, next) => {
+//   const user = await User.findById(req.user.id).select('username email'); // Select username and email
+
+//   if (!user) {
+//     return next(new ErrorResponse('User not found', 404));
+//   }
+
+//   res.status(200).json({ success: true, data: user });
+// });
+
+exports.getCurrentUser = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select(
+    'username email phone address'
+  ); // Select other fields as well
+
+  if (!user) {
+    return next(new ErrorResponse('User not found', 404));
+  }
+
+  res.status(200).json({ success: true, data: user });
+});
+
+// @desc    Update currently logged-in user's profile
+// @route   PUT /api/v1/users/profile
+// @access  Private
+exports.updateCurrentUser = asyncHandler(async (req, res, next) => {
+  const fieldsToUpdate = {
+    username: req.body.username,
+    email: req.body.email,
+    phone: req.body.phone,
+    address: req.body.address, // nested object
+  };
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user.id,
+    fieldsToUpdate,
+    {
+      new: true,
+      runValidators: true,
+    }
+  ).select('-password');
+
+  if (!updatedUser) {
+    return next(new ErrorResponse('User not found', 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    data: updatedUser,
   });
 });
