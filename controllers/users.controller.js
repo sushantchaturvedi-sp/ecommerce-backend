@@ -134,16 +134,6 @@ exports.deleteUser = asyncHandler(async (req, res, next) => {
 // @access  Private (logged-in users)
 // users.controller.js
 
-// exports.getCurrentUser = asyncHandler(async (req, res, next) => {
-//   const user = await User.findById(req.user.id).select('username email'); // Select username and email
-
-//   if (!user) {
-//     return next(new ErrorResponse('User not found', 404));
-//   }
-
-//   res.status(200).json({ success: true, data: user });
-// });
-
 exports.getCurrentUser = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user.id).select(
     'username email phone address'
