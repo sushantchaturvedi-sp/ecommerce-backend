@@ -1,6 +1,7 @@
 const asyncHandler = require('../middleware/async.middleware');
 const Order = require('../models/Order.models');
 const Cart = require('../models/Cart.models');
+const { default: mongoose } = require('mongoose');
 
 // @desc    Place a new order
 // @route   POST /api/orders/checkout
@@ -55,8 +56,7 @@ exports.getUserOrders = asyncHandler(async (req, res) => {
   const page = Number(req.query.page) || 1;
   const limit = 5;
   const skip = (page - 1) * limit;
-
-  const userId = req.user._id;
+  const userId = new mongoose.Types.ObjectId(req.user._id);
 
   const orders = await Order.aggregate([
     {
