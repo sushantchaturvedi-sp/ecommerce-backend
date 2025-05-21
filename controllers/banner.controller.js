@@ -1,15 +1,20 @@
 const path = require('path');
 const fs = require('fs');
+const asyncHandler = require('../middleware/async.middleware');
 const Banner = require('../models/Banner.models');
 
-// GET all banners
-exports.getAllBanners = async (req, res) => {
+// @desc    Get all banners
+// @route   GET /api/v1/banners
+// @access  Public
+exports.getAllBanners = asyncHandler(async (req, res) => {
   const banners = await Banner.find();
   res.json(banners);
-};
+});
 
-// // POST create a new banner
-exports.createBanner = async (req, res) => {
+// @desc    Create a new banner
+// @route   POST /api/v1/banners
+// @access  Private (admin)
+exports.createBanner = asyncHandler(async (req, res) => {
   const { productId } = req.body;
 
   if (!req.file) {
@@ -24,10 +29,12 @@ exports.createBanner = async (req, res) => {
 
   const created = await newBanner.save();
   res.status(201).json(created);
-};
+});
 
-// DELETE a banner
-exports.deleteBanner = async (req, res) => {
+// @desc    Delete a banner
+// @route   DELETE /api/v1/banners/:id
+// @access  Private (admin)
+exports.deleteBanner = asyncHandler(async (req, res) => {
   const banner = await Banner.findById(req.params.id);
 
   if (!banner) {
@@ -44,4 +51,4 @@ exports.deleteBanner = async (req, res) => {
 
   await banner.deleteOne();
   res.json({ message: 'Banner deleted' });
-};
+});
