@@ -47,18 +47,31 @@ exports.getAllProducts = asyncHandler(async (req, res) => {
   }
 
   let sortOption = {};
-  if (sort === 'name_asc') {
-    sortOption.name = 1;
-  } else if (sort === 'name_desc') {
-    sortOption.name = -1;
-  } else if (sort === 'price_asc') {
-    sortOption.price = 1;
-  } else if (sort === 'price_desc') {
-    sortOption.price = -1;
-  } else if (sort === 'orders_desc') {
-    sortOption.orderCount = -1;
-  } else {
-    sortOption.createdAt = -1; // Default sort by newest
+
+  switch (sort) {
+    case 'name_asc':
+      sortOption.name = 1;
+      break;
+
+    case 'name_desc':
+      sortOption.name = -1;
+      break;
+
+    case 'price_asc':
+      sortOption.price = 1;
+      break;
+
+    case 'price_desc':
+      sortOption.price = -1;
+      break;
+
+    case 'orders_desc':
+      sortOption.orderCount = -1;
+      break;
+
+    default:
+      sortOption.createdAt = -1; // Default sort by newest
+      break;
   }
 
   const pageNumber = parseInt(page);
