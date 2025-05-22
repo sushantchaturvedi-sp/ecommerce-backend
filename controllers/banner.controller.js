@@ -23,7 +23,7 @@ exports.createBanner = asyncHandler(async (req, res, next) => {
   }
 
   const newBanner = new Banner({
-    image: `images/${req.file.filename}`, // relative to /public
+    image: req.file.path,
     productId,
   });
 

@@ -1,23 +1,25 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 
-const uploadDir = path.join(__dirname, '../public/images');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Cloudinary Storage for Multer
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'images', // e.g., 'banners'
+    allowed_formats: ['jpg', 'jpeg', 'png'],
   },
 });
 
+// File filter for validation (optional, Cloudinary already restricts file types)
 function fileFilter(req, file, cb) {
-  // To accept the file pass `true`, like so:
   if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
     cb(null, true);
   } else {
@@ -25,6 +27,7 @@ function fileFilter(req, file, cb) {
   }
 }
 
+// Set up Multer with Cloudinary
 const upload = multer({ storage, fileFilter });
 
 module.exports = upload;
