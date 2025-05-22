@@ -1,5 +1,3 @@
-const path = require('path');
-const fs = require('fs');
 const asyncHandler = require('../middleware/async.middleware');
 const ErrorResponse = require('../utils/errorResponse.utils');
 const Banner = require('../models/Banner.models');
@@ -41,13 +39,14 @@ exports.deleteBanner = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Banner not found', 404));
   }
 
-  // Attempt to delete the image file from disk
-  const imagePath = path.join(__dirname, '../public', banner.image);
-  fs.unlink(imagePath, (err) => {
-    if (err) {
-      console.warn(`Failed to delete image file: ${err.message}`);
-    }
-  });
+  // Extract the public_id from the Cloudinary URL
+  const publicId = banner.image.split('/').slice(-1)[0].split('.')[0];
+
+  try {
+    await cloudinary.uploader.destroy(`banners/${publicId}`);
+  } catch (err) {
+    console.warn(`Cloudinary image deletion failed: ${err.message}`);
+  }
 
   await banner.deleteOne();
   res.status(200).json({ message: 'Banner deleted successfully' });
