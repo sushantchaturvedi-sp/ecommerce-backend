@@ -57,6 +57,8 @@ exports.getAllProducts = asyncHandler(async (req, res) => {
     sortOption.price = -1;
   } else if (sort === 'orders_desc') {
     sortOption.orderCount = -1;
+  } else {
+    sortOption.createdAt = -1; // Default sort by newest
   }
 
   const pageNumber = parseInt(page);

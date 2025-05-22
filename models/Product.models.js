@@ -32,6 +32,10 @@ const productSchema = new mongoose.Schema(
     deletedOn: {
       type: Date,
     },
+    orderCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
