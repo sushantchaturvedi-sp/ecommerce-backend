@@ -138,3 +138,40 @@ exports.getUserOrders = asyncHandler(async (req, res) => {
     data: orders,
   });
 });
+
+//Top Selling Products
+
+exports.getTopSellingProducts = asyncHandler(async (req, res) => {
+  const topSelling = await Order.aggregate([
+    { $unwind: '$items' },
+    {
+      $group: {
+        _id: '$items.productId',
+        totalSold: { $sum: '$items.quantity' },
+      },
+    },
+    { $sort: { totalSold: -1 } },
+    { $limit: 7 }, // adjust for top N products
+    {
+      $lookup: {
+        from: 'products',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'product',
+      },
+    },
+    { $unwind: '$product' },
+    {
+      $project: {
+        _id: 0,
+        product: 1,
+        totalSold: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    data: topSelling,
+  });
+});
