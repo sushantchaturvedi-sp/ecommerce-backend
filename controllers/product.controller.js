@@ -3,10 +3,13 @@ const asyncHandler = require('../middleware/async.middleware.js');
 const ErrorResponse = require('../utils/errorResponse.utils');
 
 // CREATE a new product
+
 exports.createProduct = asyncHandler(async (req, res) => {
   const productData = req.body;
+
+  // If Cloudinary upload is used via multer
   if (req.files?.length > 0) {
-    productData.images = req.files.map((x) => '/images/' + x.filename);
+    productData.images = req.files.map((file) => file.path); // file.path is the Cloudinary URL
   }
 
   const product = new Product(productData);
@@ -105,11 +108,12 @@ exports.getProductById = asyncHandler(async (req, res) => {
 });
 
 // UPDATE a product
-exports.updateProduct = asyncHandler(async (req, res) => {
+
+exports.updateProduct = asyncHandler(async (req, res, next) => {
   const productData = req.body;
 
   if (req.files?.length > 0) {
-    productData.images = req.files.map((x) => '/images/' + x.filename);
+    productData.images = req.files.map((file) => file.path); // Cloudinary image URLs
   }
 
   const updated = await Product.findByIdAndUpdate(req.params.id, productData, {
