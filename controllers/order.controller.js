@@ -26,6 +26,7 @@ exports.placeOrder = asyncHandler(async (req, res) => {
     0
   );
 
+  // Create the order
   const order = await Order.create({
     user: req.user._id,
     items,
@@ -34,21 +35,23 @@ exports.placeOrder = asyncHandler(async (req, res) => {
     totalAmount,
   });
 
-  // Increment order count on each product
+  const bulkOps = items.map((item) => ({
+    updateOne: {
+      filter: { _id: item.productId },
+      update: { $inc: { orderCount: item.quantity } },
+    },
+  }));
 
-  for (const item of items) {
-    await Product.findByIdAndUpdate(item.productId, {
-      $inc: { orderCount: item.quantity },
-    });
+  if (bulkOps.length > 0) {
+    await Product.bulkWrite(bulkOps);
   }
 
-  // Clear the cart after successful order placement
-
-  const cart = await Cart.findOne({ user: req.user._id });
-  if (cart) {
-    cart.items = [];
-    await cart.save();
-  }
+  // Clear the cart
+  await Cart.findOneAndUpdate(
+    { user: req.user._id },
+    { $set: { items: [] } },
+    { new: true }
+  );
 
   res.status(201).json({
     success: true,
