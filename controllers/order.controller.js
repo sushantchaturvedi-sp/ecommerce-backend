@@ -1,6 +1,7 @@
 const asyncHandler = require('../middleware/async.middleware');
 const Order = require('../models/Order.models');
 const Cart = require('../models/Cart.models');
+const Product = require('../models/Product.models');
 const { default: mongoose } = require('mongoose');
 
 // @desc    Place a new order
@@ -25,6 +26,7 @@ exports.placeOrder = asyncHandler(async (req, res) => {
     0
   );
 
+  // Create the order
   const order = await Order.create({
     user: req.user._id,
     items,
@@ -33,13 +35,23 @@ exports.placeOrder = asyncHandler(async (req, res) => {
     totalAmount,
   });
 
-  // Clear the cart after successful order placement
+  const bulkOps = items.map((item) => ({
+    updateOne: {
+      filter: { _id: item.productId },
+      update: { $inc: { orderCount: item.quantity } },
+    },
+  }));
 
-  const cart = await Cart.findOne({ user: req.user._id });
-  if (cart) {
-    cart.items = [];
-    await cart.save();
+  if (bulkOps.length > 0) {
+    await Product.bulkWrite(bulkOps);
   }
+
+  // Clear the cart
+  await Cart.findOneAndUpdate(
+    { user: req.user._id },
+    { $set: { items: [] } },
+    { new: true }
+  );
 
   res.status(201).json({
     success: true,
