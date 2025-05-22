@@ -33,27 +33,6 @@ exports.createBanner = asyncHandler(async (req, res, next) => {
 // @desc    Delete a banner
 // @route   DELETE /api/v1/banners/:id
 // @access  Admin
-// exports.deleteBanner = asyncHandler(async (req, res, next) => {
-//   const banner = await Banner.findById(req.params.id);
-
-//   if (!banner) {
-//     return next(new ErrorResponse('Banner not found', 404));
-//   }
-
-//   // Delete image from local storage
-//   const imagePath = path.join(__dirname, '..', 'public', 'images', path.basename(banner.image));
-
-//   fs.unlink(imagePath, (err) => {
-//     if (err) {
-//       console.warn(`⚠️ Failed to delete image file from disk: ${err.message}`);
-//     }
-//   });
-
-//   // Remove banner document
-//   await banner.deleteOne();
-
-//   res.status(200).json({ message: 'Banner and image deleted successfully' });
-// });
 exports.deleteBanner = asyncHandler(async (req, res, next) => {
   const banner = await Banner.findById(req.params.id);
 
