@@ -175,3 +175,31 @@ exports.updateCurrentUser = asyncHandler(async (req, res, next) => {
     data: updatedUser,
   });
 });
+
+// @desc    Register a new user
+// @route   POST /api/v1/auth/register
+// @access  Public
+exports.register = asyncHandler(async (req, res, next) => {
+  const { username, email, password } = req.body;
+
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    return next(new ErrorResponse('Email already in use', 400));
+  }
+
+  const user = await User.create({
+    username,
+    email,
+    password,
+  });
+
+  // Optionally generate and send a token here
+  res.status(201).json({
+    success: true,
+    data: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+    },
+  });
+});
