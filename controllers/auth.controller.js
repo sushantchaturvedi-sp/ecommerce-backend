@@ -7,28 +7,31 @@ const sendEmail = require('../utils/sendEmail.utils');
 // @desc      Register
 // @route     Post /api/v1/auth/register
 // @access    Public
-exports.register = asyncHandler(async (req, res, _next) => {
-  const { username, email, password, phone, role } = req.body;
+exports.register = asyncHandler(async (req, res, next) => {
+  const { username, email, password } = req.body;
 
-  //Create User
+  // Check if user with email already exists
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    return next(new ErrorResponse('Email already in use', 400));
+  }
+
+  // Create new user without phone or role fields
   const user = await User.create({
     username,
     email,
     password,
-    phone,
-    role,
   });
 
-  const option = {
-    email: email,
-    subject: 'registration',
-    message: 'welcome to eecommerce',
-  };
-
-  sendEmail(option);
-
-  console.log('sendTokenResponse');
-  sendTokenResponse(user, 200, res);
+  // Send response without phone or role
+  res.status(201).json({
+    success: true,
+    data: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+    },
+  });
 });
 
 // @desc      Login
