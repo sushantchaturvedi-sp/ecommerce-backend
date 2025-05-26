@@ -7,28 +7,53 @@ const sendEmail = require('../utils/sendEmail.utils');
 // @desc      Register
 // @route     Post /api/v1/auth/register
 // @access    Public
-exports.register = asyncHandler(async (req, res, _next) => {
-  const { username, email, password, phone, role } = req.body;
+exports.register = asyncHandler(async (req, res) => {
+  const { username, email, password, phone = '', role = 'user' } = req.body;
 
-  //Create User
-  const user = await User.create({
-    username,
-    email,
-    password,
-    phone,
-    role,
-  });
+  // Validate required fields
+  if (!username || !email || !password) {
+    return res
+      .status(400)
+      .json({ message: 'Username, email, and password are required' });
+  }
 
-  const option = {
-    email: email,
-    subject: 'registration',
-    message: 'welcome to eecommerce',
-  };
+  try {
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: 'User already exists with this email' });
+    }
 
-  sendEmail(option);
+    // Create user
+    const user = await User.create({
+      username,
+      email,
+      password,
+      phone,
+      role,
+    });
 
-  console.log('sendTokenResponse');
-  sendTokenResponse(user, 200, res);
+    // Send welcome email (optional)
+    const option = {
+      email: user.email,
+      subject: 'Registration Successful',
+      message: 'Welcome to our e-commerce platform!',
+    };
+
+    try {
+      await sendEmail(option);
+    } catch (emailErr) {
+      console.warn('Email sending failed:', emailErr.message);
+    }
+
+    // Send token response
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    console.error('Registration failed:', err);
+    res.status(500).json({ message: 'Server error during registration' });
+  }
 });
 
 // @desc      Login
