@@ -7,29 +7,6 @@ const sendEmail = require('../utils/sendEmail.utils');
 // @desc      Register
 // @route     Post /api/v1/auth/register
 // @access    Public
-// exports.register = asyncHandler(async (req, res, _next) => {
-//   const { username, email, password, phone, role } = req.body;
-
-//   //Create User
-//   const user = await User.create({
-//     username,
-//     email,
-//     password,
-//     phone,
-//     role,
-//   });
-
-//   const option = {
-//     email: email,
-//     subject: 'registration',
-//     message: 'welcome to e-commerce',
-//   };
-
-//   sendEmail(option);
-
-//   console.log('sendTokenResponse');
-//   sendTokenResponse(user, 200, res);
-// });
 exports.register = asyncHandler(async (req, res) => {
   const { username, email, password, phone = '', role = 'user' } = req.body;
 
