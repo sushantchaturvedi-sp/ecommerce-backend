@@ -3,7 +3,6 @@ const Product = require('../models/Product.models');
 const asyncHandler = require('../middleware/async.middleware');
 const ErrorResponse = require('../utils/errorResponse.utils');
 
-
 exports.getWishlist = asyncHandler(async (req, res) => {
   const wishlist = await Wishlist.findOne({ user: req.user.id }).populate(
     'products'
@@ -20,29 +19,21 @@ exports.addToWishlist = asyncHandler(async (req, res) => {
     throw new ErrorResponse('Product not found', 404);
   }
 
-  let wishlist = await Wishlist.findOne({ user: userId });
-
-  if (!wishlist) {
-    wishlist = new Wishlist({ user: userId, products: [productId] });
-  } else {
-    const alreadyExists = wishlist.products.some(
-      (p) => p && p.toString() === productId
-    );
-    if (!alreadyExists) {
-      wishlist.products.push(productId);
+  const updatedWishlist = await Wishlist.findOneAndUpdate(
+    { user: userId },
+    { $addToSet: { products: productId } },
+    {
+      new: true,
+      upsert: true,
+      setDefaultsOnInsert: true,
     }
-  }
-
-  await wishlist.save();
-
-  const populatedWishlist = await Wishlist.findById(wishlist._id).populate('products');
+  ).populate('products');
 
   res.status(200).json({
     message: 'Product added to wishlist',
-    wishlist: populatedWishlist,
+    wishlist: updatedWishlist,
   });
 });
-
 
 exports.removeFromWishlist = asyncHandler(async (req, res) => {
   const { productId } = req.body;
@@ -53,7 +44,7 @@ exports.removeFromWishlist = asyncHandler(async (req, res) => {
 
   const updatedWishlist = await Wishlist.findOneAndUpdate(
     { user: req.user.id },
-    { $pull: { products: productId } }, 
+    { $pull: { products: productId } },
     { new: true }
   ).populate('products');
 

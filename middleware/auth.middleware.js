@@ -31,7 +31,6 @@ exports.protect = asyncHandler(async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.log(err);
     return next(new ErrorResponse('Please login to access', 401));
   }
 });
@@ -48,5 +47,3 @@ exports.authorize = (...roles) => {
     next();
   };
 };
-
-
