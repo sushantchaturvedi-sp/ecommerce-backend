@@ -3,6 +3,8 @@ const Order = require('../models/Order.models');
 const Cart = require('../models/Cart.models');
 const Product = require('../models/Product.models');
 const { default: mongoose } = require('mongoose');
+const sendEmail = require('../utils/sendEmail.utils');
+const User = require('../models/User.models');
 
 // @desc    Place a new order
 // @route   POST /api/orders/checkout
@@ -52,6 +54,32 @@ exports.placeOrder = asyncHandler(async (req, res) => {
     { $set: { items: [] } },
     { new: true }
   );
+
+  const user = await User.findById(req.user._id);
+
+  const emailContent = `Hi ${user.name || 'Customer'},
+                        Thank you for your order! Your order has been placed successfully.
+                        Order Details:
+                        Order ID: ${order._id}
+                        Payment Method: ${paymentMethod}
+                        Total Amount: ₹${totalAmount.toFixed(2)}
+
+                        Shipping Address:
+                        ${shippingAddress.street}, ${shippingAddress.city}
+
+                        Items Ordered:
+                        ${items.map(item => `- ${item.name} x ${item.quantity} (₹${item.price})`).join('\n')}
+
+                        We will notify you once your order is shipped.
+
+                        Thank you for shopping with us!
+                        `;
+
+  await sendEmail({
+    email: user.email,
+    subject: 'Order Confirmation - Your Order with Exclusive',
+    message: emailContent
+  });
 
   res.status(201).json({
     success: true,
