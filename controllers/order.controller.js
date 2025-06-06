@@ -77,7 +77,7 @@ exports.placeOrder = asyncHandler(async (req, res) => {
 
   await sendEmail({
     email: user.email,
-    subject: 'Order Confirmation - Your Order with [YourAppName]',
+    subject: 'Order Confirmation - Your Order with Exclusive',
     message: emailContent
   });
 
