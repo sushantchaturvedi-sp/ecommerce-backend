@@ -103,7 +103,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
   await user.save({ validateBeforeSave: false });
 
-  const resetUrl = `http://localhost:5000/reset-password/${resetToken}`;
+  const resetUrl = `${process.env.BASE_URL}/reset-password/${resetToken}`;
 
   const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please open this url: \n\n ${resetUrl}`;
 
