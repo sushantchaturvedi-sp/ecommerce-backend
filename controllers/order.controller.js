@@ -215,7 +215,7 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
     const user = order.user;
 
     if (!user?.email) {
-      console.error('❌ User email is missing, cannot send delivery email');
+      console.error(' User email is missing, cannot send delivery email');
     } else {
       const deliveryMessage = `Hi ${user.name || 'Customer'},
 
@@ -232,7 +232,7 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
         message: deliveryMessage,
       });
 
-      console.log('✅ Delivery email sent to:', user.email);
+      console.log('Delivery email sent to:', user.email);
     }
   }
 
