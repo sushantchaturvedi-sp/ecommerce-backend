@@ -211,6 +211,8 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
   order.status = status;
   await order.save();
 
+  
+
   if (status === 'Delivered') {
     const user = order.user;
 
@@ -231,8 +233,6 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
         subject: 'Order Delivered - Thank you for your purchase!',
         message: deliveryMessage,
       });
-
-      console.log('Delivery email sent to:', user.email);
     }
   }
 
