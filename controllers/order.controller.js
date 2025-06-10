@@ -63,22 +63,22 @@ exports.placeOrder = asyncHandler(async (req, res) => {
                         Order ID: ${order._id}
                         Payment Method: ${paymentMethod}
                         Total Amount: ₹${totalAmount.toFixed(2)}
-
+ 
                         Shipping Address:
                         ${shippingAddress.street}, ${shippingAddress.city}
-
+ 
                         Items Ordered:
-                        ${items.map(item => `- ${item.name} x ${item.quantity} (₹${item.price})`).join('\n')}
-
+                        ${items.map((item) => `- ${item.name} x ${item.quantity} (₹${item.price})`).join('\n')}
+ 
                         We will notify you once your order is shipped.
-
+ 
                         Thank you for shopping with us!
                         `;
 
   await sendEmail({
     email: user.email,
     subject: 'Order Confirmation - Your Order with Exclusive',
-    message: emailContent
+    message: emailContent,
   });
 
   res.status(201).json({
@@ -177,4 +177,74 @@ exports.getUserOrders = asyncHandler(async (req, res) => {
     limit,
     data: orders,
   });
+});
+
+
+
+// @desc    Get all orders (Admin)
+// @route   GET /api/orders
+// @access  Private/Admin
+exports.getAllOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find()
+    .populate('user', 'name email')
+    .sort({ createdAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    count: orders.length,
+    data: orders,
+  });
+});
+
+// @desc    Update order status (Admin)
+// @route   PUT /api/orders/:id/status
+// @access  Private/Admin
+exports.updateOrderStatus = asyncHandler(async (req, res) => {
+  const { status } = req.body;
+  const order = await Order.findById(req.params.id).populate('user', 'name email');
+
+
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Order not found' });
+  }
+
+  order.status = status;
+  await order.save();
+
+  if (status === 'Delivered') {
+    const user = order.user;
+
+
+    const deliveryMessage = `Hi ${user.name || 'Customer'},
+
+      Your order (ID: ${order._id}) has been successfully delivered.
+
+      Thank you for shopping with us!
+
+      Regards,
+      ${process.env.FROM_NAME}`;
+
+    await sendEmail({
+      email: user.email,
+      subject: 'Order Delivered - Thank you for your purchase!',
+      message: deliveryMessage,
+    });
+
+
+  }
+
+
+  res.status(200).json({ success: true, message: 'Status updated', data: order });
+});
+
+// @desc    Delete an order (Admin)
+// @route   DELETE /api/orders/:id
+// @access  Private/Admin
+exports.deleteOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Order not found' });
+  }
+  await order.deleteOne();
+  res.status(200).json({ success: true, message: 'Order deleted' });
 });
